@@ -4,7 +4,8 @@ import json
 import math
 
 #The overall results dataframe
-_df_ = pd.read_csv("./Data/KA_Ass_Results.csv")
+#_df_ = pd.read_csv("./Data/KA_Ass_Results.csv")
+_df_ = pd.read_csv("./Data/KA_Projected_Base_Results.csv")
 
 #Dictionary that maps parties to their colors
 with open('./Data/party_palette.json', 'r') as fp:
@@ -31,7 +32,12 @@ def get_party_color_map():
 # Function to get the result for the year
 def getKAResultsByYear(year):
     df = _df_.copy()
-    df = df.loc[df['YEAR']==2013]
+    df = df.loc[df['YEAR']==year]
+    return df
+
+# Function to get the full resuls
+def getKAResults():
+    df = _df_.copy()
     return df
 
 #Function returns all the general election years since (and including) 1957
@@ -347,8 +353,102 @@ def getAC_Names():
     ac_names = mapdf['AC_NAME'].unique()
     return ac_names
 
+# Function to transfer votes from one party to another
+# within the given dataframe
+def transferVotes(df,transfer_protocol):
+    idf = df.copy()
+    from_party = transfer_protocol['from']
+    to_party = transfer_protocol['to']
+    pct = transfer_protocol['percent']
+    
+    #Now let us subset the df based on from_party
+    fdf = idf.loc[(idf['PARTY']==from_party)] 
+    
+    
+    #Get the list of assembly constituencies in that subset
+    ac_names = fdf['AC_NAME'].unique()
+    
+    
+    for ac_name in ac_names:
+        #Now check if that constituency has to_party as well
+        #If it doesnt, go to next constituency
+        tidx = idf.index[(idf['AC_NAME'] == ac_name) & (idf['PARTY'] == to_party)]        
+        if tidx.size <= 0:
+            continue
+            
+        fidx = idf.index[(idf['AC_NAME'] == ac_name) & (idf['PARTY'] == from_party)]
+        votes_to_transfer = int (idf.loc[fidx,'VOTES'] * pct/100)
+        idf.loc[tidx,'VOTES'] += votes_to_transfer
+        idf.loc[fidx,'VOTES'] -= votes_to_transfer
+        
+    return idf     
+        
+## This function reassigns the positions of the parties within the dataframe
+## POSITION 1 will be assigned to party with highest votes, POSITION 2 to next one
+## and constinue along thos lines
+def reassignPositions(df):
+    pdf = df.copy()
+    
+    #Let us now sort the entire df based on AC_NO and VOTES
+    pdf = pdf.sort_values(by=['AC_NO','VOTES'],ascending=[True,False])
+    
+    ac_nos = pdf['AC_NO'].unique()
+    
+    for ac_no in ac_nos:
+        subdf = pdf.loc[pdf["AC_NO"]==ac_no]
+        i=1
+        for idx,row in subdf.iterrows():
+            pdf.loc[idx,'POSITION']=i
+            i += 1
+    
+    return pdf
 
+## This function is used to change the election year in the given dataframe to the given year
+def changeElectionYear(df, old,new):
+    edf = df.copy()
+    
+    def change(x):
+        if x == old:
+            return new
+        else:
+            return old
+        
+    edf['YEAR'] = edf['YEAR'].apply(change)
+    return edf
 
+## Bunch of functions to move votes to bjp
+def kjp2bjp(fdf,pct):
+    df = fdf.copy()
+    transfer_protocol={"from":"KJP","to":"BJP","percent":pct}
+    
+    tdf = transferVotes(df,transfer_protocol)
+    tdf = reassignPositions(tdf)
+    
+    return tdf
+    
+def bsrcp2bjp(fdf,pct):
+    df = fdf.copy()
+    transfer_protocol={"from":"BSRCP","to":"BJP","percent":pct}
+    
+    tdf = transferVotes(df,transfer_protocol)
+    tdf = reassignPositions(tdf)
+    
+    return tdf
 
+def inc2bjp(fdf,pct):
+    df = fdf.copy()
+    transfer_protocol={"from":"INC","to":"BJP","percent":2}
+    
+    tdf = transferVotes(df,transfer_protocol)
+    tdf = reassignPositions(tdf)
+    
+    return tdf
 
-
+def jds2bjp(fdf,pct):
+    df = fdf.copy()
+    transfer_protocol={"from":"JD(S)","to":"BJP","percent":2}
+    
+    tdf = transferVotes(df,transfer_protocol)
+    tdf = reassignPositions(tdf)
+    
+    return tdf

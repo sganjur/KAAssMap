@@ -120,7 +120,7 @@ votes_pct_dic = {"Votes Pct":votes_pct}
 
 dnplt2, dnsource2 = KAC.DonutChart(party_dic,votes_pct_dic,"% Votes Shares")
 
-year_slider = Slider(start=1957, end=2013, value=2008, step=1,title="Year")
+year_slider = Slider(start=1957, end=2018, value=2008, step=1,title="Year")
 year_slider.on_change('value', update_data)
 
 from bokeh.layouts import gridplot
