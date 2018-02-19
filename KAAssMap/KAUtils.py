@@ -1,27 +1,49 @@
 import pandas as pd
+import numpy as np
+import json
+import math
 
+#The overall results dataframe
+_df_ = pd.read_csv("./Data/KA_Ass_Results.csv")
+
+#Dictionary that maps parties to their colors
+with open('./Data/party_palette.json', 'r') as fp:
+        _party_color_map_ = json.load(fp)
+
+#Party wise results
+_party_results_ = pd.read_csv("./Data/KAPartyResults.csv")
+
+#The Dataframe with KA Assembly map
+_mapdf_ = pd.read_pickle("./Maps/KAAssMap.pickle")
+
+#This function removes the "(SC)" and "(ST)" tags from the constituency names
 def removeSCSTFromName(AC_NAME):
     import re
     AC_NAME = re.sub("\(\s*S[CT]\s*\)","",AC_NAME.upper()).strip()
     return (AC_NAME)
 
-
+# Function to get the party color map
 def get_party_color_map():
-    import json
-    with open('./Data/party_palette.json', 'r') as fp:
-        party_color_map = json.load(fp)
+    
+    party_color_map = _party_color_map_
     return party_color_map
 
+# Function to get the result for the year
+def getKAResultsByYear(year):
+    df = _df_.copy()
+    df = df.loc[df['YEAR']==2013]
+    return df
 
+#Function returns all the general election years since (and including) 1957
 def getElectionYears():
-    rdf = pd.read_csv("./Data/KA_Ass_Results.csv")
-    years = rdf["YEAR"].unique()
+    years = _df_["YEAR"].unique()
     return years
 
-
+# Returns the Dataframe of all conteststed winners for the year
+# Please note that we are removing those who won unoppsed
 def getContestedWinnersDFByYear(year):
-    import pandas as pd
-    df = pd.read_csv("./Data/KA_Ass_Results.csv")
+    
+    df = _df_.copy()
     
     #Remove those who won unopposed
     df = df.loc[(df['YEAR']==year) & (df['POSITION'] == 1) & (df['VOTES'].notnull())]
@@ -38,9 +60,10 @@ def getContestedWinnersDFByYear(year):
     
     return df
 
+# Returns the dataframe of all Runners up for the year
 def getRunnersDFByYear(year):
-    import pandas as pd
-    df = pd.read_csv("./Data/KA_Ass_Results.csv")
+    
+    df = _df_.copy()
     
     #Remove those who won unopposed
     df = df.loc[(df['YEAR']==year) & (df['POSITION'] == 2) & (df['VOTES'].notnull())]
@@ -56,6 +79,7 @@ def getRunnersDFByYear(year):
     return df
 
 
+# Returns the dataframe of results with the winning margin for the specified year
 def getMarginsDFByYear(year):
     
     winDF = getContestedWinnersDFByYear(year)
@@ -72,9 +96,9 @@ def getMarginsDFByYear(year):
     return marginDF
     
 
-
+# Returns the dataframe of results with the pct winning margin for the specified year
 def getPCTMarginsDFByYear(year):
-    df = pd.read_csv("./Data/KA_Ass_Results.csv")
+    df = _df_.copy()
     
     #Remove those rows where there no values for VOTES
     #Get data for only the relevant year
@@ -98,11 +122,10 @@ def getPCTMarginsDFByYear(year):
 
     return(marginDF)
 
-
+# This function returns Dataframe with party results data for the year
 def getKAPartyResultsByYear(year):
     
-    import pandas as pd
-    rdf = pd.read_csv("./Data/KA_Ass_Results.csv")
+    rdf = _df_.copy()
     
     #First get the results for a specific year
     yeardf = rdf.loc[rdf['YEAR'] == year]
@@ -217,11 +240,11 @@ def getKAPartyResultsByYear(year):
     
     return results   
     
-
+# This function returns the array of party results for all the years
 def getKAPartyResults():
     
     import pandas as pd
-    rdf = pd.read_csv("./Data/KA_Ass_Results.csv")
+    rdf = _df_.copy()
     
     years = rdf['YEAR'].unique()
     
@@ -234,16 +257,13 @@ def getKAPartyResults():
     resultsDF = pd.concat(results)
     return resultsDF
 
-
+# Returns the Dataframe with all the party results for all the years
 def loadKAPartyResults():
-    
-    results = pd.read_csv("./Data/KA_Party_Results.csv")
+    results = _party_results_.copy()
     return results
 
-
-
+# Returns the list of dataframes with PCT Margins for all the years
 def getKAPCTMarginsDF():
-    import pandas as pd
     el_years = getElectionYears()
     results = []
     
@@ -255,12 +275,10 @@ def getKAPCTMarginsDF():
     
     return marginsDF
 
+# Get a dataframe of result for a year for the specified assembly constituencies
 def getResultsByYear(year,ac_names):
-    import pandas as pd
-    import numpy as np
-    import math
-    
-    rdf = pd.read_csv("./Data/KA_Ass_Results.csv")
+        
+    rdf = _df_
     
     winners = []
     winnerParties = []
@@ -317,16 +335,20 @@ def getResultsByYear(year,ac_names):
                "Runner Votes":runnerVotes}
     return results
 
+# Function that returns the MAP dataframe
 def getMapDF():
     import pandas as pd
-    mapdf = pd.read_pickle("./Maps/KAAssMap.pickle")
+    mapdf = _mapdf_.copy()
     return mapdf
 
+# Function that returns the list of assembly constituencies that are in the map
 def getAC_Names():
     mapdf = getMapDF()
     ac_names = mapdf['AC_NAME'].unique()
     return ac_names
- 
+
+
+
 
 
 
