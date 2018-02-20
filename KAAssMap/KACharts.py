@@ -385,7 +385,8 @@ def Boxplot(bx_source,title,x_label, y_label):
 ##################################################
 ####### TableDisplay related functions
 ########
-
+#### This function generates the TblStuff for displaying KA Party results for a particular year
+#### We will display PARTY, SEATS_WON and PCT_VOTES_WON fields from the given DataFrame
 def getKAPartyTblStuff(df):
     
     pdf = df.copy()
