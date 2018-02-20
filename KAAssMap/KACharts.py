@@ -4,6 +4,7 @@ import numpy as np
 from bokeh.models import ColumnDataSource, CategoricalColorMapper, Slider, Legend, LegendItem
 from bokeh.plotting import figure
 from bokeh.layouts import column, gridplot, row,layout
+from bokeh.models.widgets import DataTable, TableColumn
 from bokeh.io import curdoc
 
 
@@ -376,6 +377,44 @@ def Boxplot(bx_source,title,x_label, y_label):
     p.xaxis.axis_label=x_label
     p.yaxis.axis_label=y_label
     
-   
-    
     return p, source
+
+
+
+###################################################################
+##################################################
+####### TableDisplay related functions
+########
+
+def getKAPartyTblStuff(df):
+    
+    pdf = df.copy()
+    pdf = pdf.loc[pdf['SEATS_WON'] > 0]
+    pdf = pdf.sort_values(by=['SEATS_WON','PARTY'],ascending=[False,True])
+    
+    data = dict (
+        labels=pdf['PARTY'].tolist(),
+        values1=pdf['SEATS_WON'],
+        values2=pdf['PCT_VOTES_WON']
+    )
+  
+    source = ColumnDataSource(data)
+
+    columns = [
+        TableColumn(field="labels", title="Party"),
+        TableColumn(field="values1", title="Seats Won"),
+        TableColumn(field="values2", title="% Vote Share"),
+    ]
+    
+    tblStuff = {"source":source, "columns":columns}
+    
+     
+    return tblStuff
+
+def TableDisplay(tblStuff):
+    source = tblStuff['source']
+    columns = tblStuff['columns']
+    data_table = DataTable(source=source, columns=columns, width=400, height=200)
+    return data_table, source
+
+

@@ -12,9 +12,9 @@ from bokeh.models import (
     CustomJS
 )
 
-def update_donuts_data(year):
+def update_party_data(year):
 
-    df = donut_results[year]
+    df = party_results[year]
 
     parties = df.loc[df['SEATS_WON']>0]['PARTY'].tolist()
     seats = df.loc[df['SEATS_WON']>0]['SEATS_WON'].tolist()
@@ -59,8 +59,9 @@ def update_data(attrname, old, new):
     # Get the current slider values
     year = year_slider.value
 
-    if year in donut_results.keys():
-        update_donuts_data(year)
+    if year in party_results.keys():
+        update_party_data(year)
+        tblSource.data = tbl_dic[year]['source'].data
 
     if year in map_results.keys():
         update_maps_data(year)
@@ -80,7 +81,7 @@ el_years = KAU.getElectionYears()
 ac_names = KAU.getAC_Names()
 
 map_results = {}
-donut_results = {}
+party_results = {}
 box_dic = {}
 
 for year in el_years:
@@ -97,12 +98,18 @@ for year in el_years:
 
 MapPlot, MapSource = KAC.KAAssMap(MapDF,map_results[2008])
 
+party_results = {}
+tbl_dic = {}
+
 for year in el_years:
     rdf = KAU.getKAPartyResultsByYear(year)
-    donut_results[year]=rdf
+    party_results[year]=rdf
+    tblStuff = KAC.getKAPartyTblStuff(rdf)
+    tbl_dic[year] = tblStuff
 
-df = donut_results[2008]
+df = party_results[2008]
 
+tblPlt, tblSource = KAC.TableDisplay(tbl_dic[2008])
 
 parties = df.loc[df['SEATS_WON']>0]['PARTY'].tolist()
 party_dic = {"Party":parties}
@@ -110,7 +117,6 @@ seats = df.loc[df['SEATS_WON']>0]['SEATS_WON'].tolist()
 seats_dic = {"Seats":seats}
 
 dnplt1, dnsource1 = KAC.DonutChart(party_dic,seats_dic,"Seat Shares")
-
 
 parties = df.loc[df['SEATS_WON']>0]['PARTY'].tolist()
 party_dic = {"Party":parties}
@@ -126,7 +132,7 @@ year_slider.on_change('value', update_data)
 from bokeh.layouts import gridplot
 
 donuts = gridplot([dnplt1,dnplt2],ncols=2,plot_width=250, plot_height=250,toolbar_location="right")
-donuts_box = column(donuts,box_plot)
+donuts_box = column(donuts,tblPlt, box_plot)
 map_plus_slider = column([MapPlot, year_slider])
 
 
