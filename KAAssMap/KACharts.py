@@ -61,7 +61,7 @@ def DonutChart(lab_dic,amt_dic,title):
     source=ColumnDataSource(dict(starts=sangles, ends=eangles,\
                                  labels=labels, amounts=amounts,colors=colors)) 
 
-    plot =  figure(toolbar_location="right") 
+    plot =  figure(toolbar_location="right",min_border=20) 
 
     hover = HoverTool( 
             tooltips=[ 
@@ -114,7 +114,7 @@ def DonutChartWithLegend(lab_dic,amt_dic,title):
     source=ColumnDataSource(dict(starts=sangles, ends=eangles,\
                                  labels=labels, amounts=amounts,colors=colors)) 
 
-    plot =  figure(toolbar_location="right") 
+    plot =  figure(toolbar_location="right",min_border=20) 
 
     hover = HoverTool( 
             tooltips=[ 
@@ -289,7 +289,7 @@ def buildBoxPlotData(rdf):
             i +=1
     elif diff < 0:   
         #We need to remove the rows from out
-        print("OUT is higher")
+        #print("OUT is higher")
         i=0
         while i > diff:
             del (outx[-1])
@@ -344,7 +344,7 @@ def Boxplot(bx_source,title,x_label, y_label):
     
     cc_mapper = CategoricalColorMapper(factors=prts,palette=clrs)
    
-    p = figure(tools="save", title="",width=500,height=300,x_range=[])
+    p = figure(tools="save", title="",width=500,height=300,x_range=[],min_border=20)
     p.x_range.factors = source.data['x']
     p.segment(source=source, x0 ='x', y0='upper', x1='x', y1='upper_top', line_color="black")
     p.segment(source=source, x0='x',y0='lower', x1='x', y1='lower_bottom', line_color="black")
@@ -396,7 +396,7 @@ def getKAPartyTblStuff(df):
     data = dict (
         labels=pdf['PARTY'].tolist(),
         values1=pdf['SEATS_WON'],
-        values2=pdf['PCT_VOTES_WON']
+        values2=[ '{:02.3f}'.format(val) for val in pdf['PCT_VOTES_WON'].tolist()]
     )
   
     source = ColumnDataSource(data)
@@ -415,7 +415,7 @@ def getKAPartyTblStuff(df):
 def TableDisplay(tblStuff):
     source = tblStuff['source']
     columns = tblStuff['columns']
-    data_table = DataTable(source=source, columns=columns, width=400, height=200)
+    data_table = DataTable(source=source, columns=columns, width=275, height=300)
     return data_table, source
 
 

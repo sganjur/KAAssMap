@@ -131,8 +131,8 @@ year_slider.on_change('value', update_data)
 
 from bokeh.layouts import gridplot
 
-donuts = gridplot([dnplt1,dnplt2],ncols=2,plot_width=250, plot_height=250,toolbar_location="right")
-donuts_box = column(donuts,tblPlt, box_plot)
+donuts = gridplot([tblPlt,dnplt1],ncols=2,plot_width=275, plot_height=275,toolbar_location="right")
+donuts_box = column(donuts, box_plot)
 map_plus_slider = column([MapPlot, year_slider])
 
 
